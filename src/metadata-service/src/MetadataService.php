@@ -27,6 +27,7 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use function Safe\json_decode;
+use function Safe\parse_url;
 use function Safe\sprintf;
 use Throwable;
 use Webauthn\CertificateToolbox;
@@ -196,13 +197,10 @@ class MetadataService
 
     private function buildUri(string $uri): string
     {
-        $parsedUri = \Safe\parse_url($uri);
-        dump($parsedUri);
-        //$parsedUri = UriString::parse($uri);
+        $parsedUri = parse_url($uri);
         $queryString = $parsedUri['query'] ?? '';
         $query = [];
-        parse_str($queryString, $query); //Query::createFromRFC3986($queryString);
-        dump($query);
+        parse_str($queryString, $query);
         foreach ($this->additionalQueryStringValues as $k => $v) {
             if (isset($query[$k])) {
                 if (is_array($query[$k])) {
