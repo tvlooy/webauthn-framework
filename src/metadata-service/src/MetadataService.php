@@ -17,11 +17,10 @@ use Assert\Assertion;
 use Base64Url\Base64Url;
 use function count;
 use InvalidArgumentException;
+use function is_array;
 use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature\Algorithm\ES256;
 use Jose\Component\Signature\Serializer\CompactSerializer;
-use League\Uri\Components\Query;
-use League\Uri\UriString;
 use LogicException;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -197,15 +196,37 @@ class MetadataService
 
     private function buildUri(string $uri): string
     {
-        $parsedUri = UriString::parse($uri);
-        $queryString = $parsedUri['query'];
-        $query = Query::createFromRFC3986($queryString);
+        $parsedUri = \Safe\parse_url($uri);
+        dump($parsedUri);
+        //$parsedUri = UriString::parse($uri);
+        $queryString = $parsedUri['query'] ?? '';
+        $query = [];
+        parse_str($queryString, $query); //Query::createFromRFC3986($queryString);
+        dump($query);
         foreach ($this->additionalQueryStringValues as $k => $v) {
-            $query = $query->withPair($k, $v);
+            if (isset($query[$k])) {
+                if (is_array($query[$k])) {
+                    $query[$k][] = $v;
+                } else {
+                    $query[$k] = [$query[$k], $v];
+                }
+                continue;
+            }
+            $query = $query[$k] = $v;
         }
-        $parsedUri['query'] = 0 === $query->count() ? null : $query->__toString();
+        if (0 === count($query)) {
+            unset($parsedUri['query']);
+        }
 
-        return UriString::build($parsedUri);
+        return
+            (isset($parsedUri['scheme']) ? $parsedUri['scheme'].'://' : '')
+            .(isset($parsedUri['user']) ? $parsedUri['user'].(isset($parsedUri['pass']) ? ':'.$parsedUri['pass'] : '').'@' : '')
+            .($parsedUri['host'] ?? '')
+            .(isset($parsedUri['port']) ? ':'.$parsedUri['port'] : '')
+            .($parsedUri['path'] ?? '')
+            .(isset($parsedUri['query']) ? '?'.$parsedUri['query'] : '')
+            .(isset($parsedUri['fragment']) ? '#'.$parsedUri['fragment'] : '')
+            ;
     }
 
     private function fetchTableOfContent(string $uri): MetadataTOCPayload

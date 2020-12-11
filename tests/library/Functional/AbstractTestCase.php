@@ -57,9 +57,9 @@ use Webauthn\TokenBinding\TokenBindingNotSupportedHandler;
  */
 abstract class AbstractTestCase extends TestCase
 {
-    use MockedRequestTrait;
-    use MockedPublicKeyCredentialSourceTrait;
     use MockedMappedResponseTrait;
+    use MockedPublicKeyCredentialSourceTrait;
+    use MockedRequestTrait;
 
     /**
      * @var PublicKeyCredentialLoader|null

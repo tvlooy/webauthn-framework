@@ -35,8 +35,8 @@ use Webauthn\Tests\MockedRequestTrait;
  */
 class MetadataServiceTest extends KernelTestCase
 {
-    use MockedRequestTrait;
     use MockedMappedResponseTrait;
+    use MockedRequestTrait;
 
     /**
      * @test
